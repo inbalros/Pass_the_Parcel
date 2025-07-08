@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pass the Parcel</title>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <style>
+    /* Animated gradient background */
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(45deg, #2193b0, #6dd5ed, #e0c3fc, #8ec5fc);
+      background-size: 400% 400%;
+      animation: gradientBG 12s ease infinite;
+      overflow: hidden;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Fullscreen confetti canvas */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    /* Container styling */
+    .container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transform: perspective(600px) rotateX(0) rotateY(0);
+      transition: transform 0.2s ease;
+      overflow: hidden;
+    }
+    /* Border animation */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(60deg, #ff6ec4, #7873f5, #4ade80, #38bdf8);
+      background-size: 300% 300%;
+      animation: borderAnim 5s linear infinite;
+      border-radius: 14px;
+      z-index: -1;
+    }
+    @keyframes borderAnim {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    /* Auto-sway for touch devices */
+    @media (hover: none) {
+      .container { animation: sway 12s ease-in-out infinite; }
+    }
+    @keyframes sway {
+      0%,100% { transform: perspective(600px) rotateX(0) rotateY(0); }
+      25% { transform: perspective(600px) rotateX(3deg) rotateY(-3deg); }
+      50% { transform: perspective(600px) rotateX(0) rotateY(0); }
+      75% { transform: perspective(600px) rotateX(-3deg) rotateY(3deg); }
+    }
+    /* Tilt effect on pointer devices */
+    @media (hover: hover) {
+      .container:hover { transform: perspective(600px) rotateX(5deg) rotateY(-5deg); }
+    }
+    /* Header layout for logo and icon */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    /* Lab Logo styling */
+    #labLogo {
+      width: 120px;
+      height: auto;
+    }
+    /* Icon styling */
+    #icon {
+      font-size: 4em;
+    }
+    /* Title font-size increased */
+    h2 {
+      font-size: 1.6em;
+      margin-bottom: 12px;
+      color: #333;
+      font-weight: 600;
+      animation: fadeIn 1s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Input and button font-size increased */
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.2em;
+      box-sizing: border-box;
+      border: none;
+      position: relative;
+      overflow: hidden;
+    }
+    input {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid #ccc;
+      font-weight: 300;
+    }
+    input::placeholder { color: #999; }
+    input:focus { outline: 2px solid #2193b0; }
+    button {
+      background: #2193b0;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    button:hover { background: #17638c; }
+    /* Ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: rippleAnim 0.6s linear;
+      background: rgba(255,255,255,0.7);
+    }
+    @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
+    /* TaskOutput font-size increased */
+    #taskOutput {
+      font-size: 1.4em;
+      margin-top: 16px;
+      font-weight: 600;
+      color: #333;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      min-height: 1.2em;
+    }
+    #taskOutput.show { opacity: 1; transform: scale(1); }
+  </style>
+</head>
+<body>
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+  <div class="container" id="container">
+    <div class="header">
+      <img id="labLogo" src="lab_logo.png" alt="Lab Logo" />
+      <div id="icon">🎁</div>
+    </div>
+    <h2>Pass the Parcel</h2>
+    <input type="text" id="codeInput" placeholder="Enter code (e.g. LAYER1)" />
+    <button id="revealBtn">Reveal Task</button>
+    <div id="taskOutput"></div>
+  </div>
+  <script>
+    const tasks = {
+      "LAYER1": "שתי אמיתות ושקר: ספר עובדה אחת אמתית ועובדה אחת שקרית, ואנחנו ננסה לנחש מה אמת ומה שקר.",
+      "LAYER2": "הראה תמונה אחרונה שצילמת בטלפון וספר עליה בקצרה.",
+      "LAYER3": "סיפור שיתופי: אמור משפט פתיחה, וכל משתתף בתורו מוסיף מילה אחת עד שהסיפור חוזר אליך – ואז סגור אותו במשפט אחד.",
+      "LAYER4": "ספר פאדיחה מצחיקה שקרתה לך לאחרונה.",
+      "LAYER5": "ספר בדיחה שתצחיק מישהו מהנוכחים – בחר אחד ונסה לגרום לו לצחוק.",
+      "LAYER6": "אם לא היית לומד בתואר שלך, איזה תואר היית בוחר ולמה?",
+      "LAYER7": "אם היית יכול להוסיף קורס לתואר שלנו, איזה קורס זה היה ולמה?",
+      "LAYER8": "העבר את החבילה למי שמדבר הכי הרבה שפות – אם תיקו, בחר אחד.",
+      "LAYER9": "העבר את החבילה למי שאתה לא מכיר עדיין, וספרה בקצרה על עצמו.",
+      "LAYER10": "ספר על תחביב או עובדה מעניינת על עצמך.",
+      "LAYER11": "ספר בקצרה על המחקר שלך תוך כדי קפיצה על רגל אחת – החלף רגל בכל פעם שאתה אומר 'למידת מכונה'.",
+      "LAYER12": "העריך בכמה אחוז משורות הקוד שלך נכתבו על ידי צאט ג'יפיטי וחבריו.",
+      "LAYER13": "שתף דעה לא פופולרית שיש לך.",
+      "LAYER14": "העבר את החבילה לחבר הכי צעיר.",
+      "LAYER15": "המציא סלוגן מגניב למעבדה (בכמה מילים).",
+      "LAYER16": "הרים כוסית לכבוד צאט ג'יפיטי בסגנון מרגש.",
+      "LAYER17": "סיימנו! פתח את החבילה."
+    };
+    const btn = document.getElementById('revealBtn');
+    const output = document.getElementById('taskOutput');
+    const container = document.getElementById('container');
+    const sound = new Audio('https://actions.google.com/sounds/v1/cartoon/balloon_pop.mp3'); sound.preload = 'auto';
+    const myConfetti = confetti.create(document.getElementById('confetti-canvas'), { resize: true, useWorker: true });
+    container.addEventListener('mousemove', e => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      container.style.transform = `perspective(600px) rotateX(${(0.5 - y/rect.height)*10}deg) rotateY(${(x/rect.width - 0.5)*10}deg)`;
+    });
+    container.addEventListener('mouseleave', () => container.style.transform = 'perspective(600px) rotateX(0) rotateY(0)');
+    btn.addEventListener('click', e => {
+      const rect = btn.getBoundingClientRect();
+      const circle = document.createElement('span');
+      const dia = Math.max(btn.clientWidth, btn.clientHeight);
+      circle.style.width = circle.style.height = `${dia}px`;
+      circle.style.left = `${e.clientX-rect.left-dia/2}px`;
+      circle.style.top = `${e.clientY-rect.top-dia/2}px`;
+      circle.classList.add('ripple');
+      const prev = btn.getElementsByClassName('ripple')[0]; if(prev) prev.remove();
+      btn.appendChild(circle);
+      sound.currentTime = 0; sound.play();
+      myConfetti({ particleCount:100, spread:70, origin:{y:0.6} });
+      setTimeout(()=>{ output.textContent = tasks[document.getElementById('codeInput').value.trim()] || 'Invalid code'; output.classList.add('show'); }, 300);
+    });
+  </script>
+</body>
+</html>
